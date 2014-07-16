@@ -1,0 +1,25 @@
+{
+	"Name": "rss_test",
+	"Channels": {
+		"#rss": {
+			"Feeds": [
+				"http://tank.transitiontech.ca:8080/phpunk/wordpress/?feed=rss2",
+				"http://[fcd9:e703:498e:5d07:e5fc:d525:80a6:a51c]/stuff/blog/html/feed.rss",
+				"http://socialno.de/api/statuses/public_timeline.rss",
+				"http://uppit.us/.rss",
+				"http://hyperboria.thefinn93.com/blog/1/feed",
+				"http://cjdns.ve7alb.ca/?feed=rss2",
+				"http://dryware.org/feed.xml",
+				"http://h.zfh.so/h.feed.xml",
+
+				"http://www.npr.org/rss/rss.php?id=1001",
+				"http://feeds.reuters.com/reuters/topNews",
+				"http://news.ycombinator.com/rss"
+			],
+			"Ops": [
+				"fc02:35c0:d8ad:7498:b8d3:a53:bfdd:5a3f",
+				"fc04:aed1:4231:d381:d755:f3fe:ff9d:fb61"
+			]
+		}
+	}
+}
