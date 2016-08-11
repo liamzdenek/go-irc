@@ -1,12 +1,13 @@
 package main
 
 import (
-	"./irc"
-	"./irc/irce"
 	"fmt"
 	"log"
 	"time"
 	"strings"
+
+	"github.com/liamzdenek/go-irc/irc"
+	"github.com/liamzdenek/go-irc/irc/irce"
 )
 
 func main() {

@@ -1,9 +1,10 @@
 package irce
 
 import (
-	".."
 	"log"
 	"strings"
+
+	"github.com/liamzdenek/go-irc/irc"
 )
 
 type ChannelHandler struct {
