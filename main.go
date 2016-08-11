@@ -11,7 +11,7 @@ import (
 )
 
 func main() {
-	i := irc.NewIRC("hypeirc:6667")
+	i := irc.NewIRC(Conf.Server)
 	ch := irce.NewChannelHandler(i)
 
 	name := Conf.Name

@@ -8,7 +8,8 @@ import (
 var Conf *Config = &Config{}
 
 type Config struct {
-	Name string
+	Name   string
+	Server string
 	// string = channel name
 	Channels map[string]*struct {
 		Feeds []string // http list
