@@ -1,8 +1,9 @@
 package irce
 
 import (
-	".."
 	"log"
+
+	"github.com/liamzdenek/go-irc/irc"
 )
 
 func LogHandler(e irc.Event) {
