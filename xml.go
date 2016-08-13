@@ -118,9 +118,11 @@ func (rf *RSSFeed) worker() {
 				}
 			}
 		}
+
+		re := time.Minute * Conf.Refetch
 		select {
-		case <-time.After(time.Minute * 5):
-			log.Printf("5m elapsed. refetching URL: %s", rf.url)
+		case <-time.After(re):
+			log.Printf(re.String()+" elapsed. refetching URL: %s", rf.url)
 		}
 	}
 }

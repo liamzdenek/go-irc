@@ -3,12 +3,15 @@ package main
 import (
 	"encoding/json"
 	"io/ioutil"
+	"time"
 )
 
 var Conf *Config = &Config{}
 
 type Config struct {
-	Name string
+	Name    string
+	Server  string
+	Refetch time.Duration
 	// string = channel name
 	Channels map[string]*struct {
 		Feeds []string // http list
