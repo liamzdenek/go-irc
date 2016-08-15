@@ -19,18 +19,17 @@ func main() {
 	for channel, channel_data := range Conf.Channels {
 		ch.Join(channel)
 		for _, feed_str := range channel_data.Feeds {
-			this := feed_str
-			go func() {
-				feed := NewRSSFeed(this, NewRamCache())
+			go func(f, c string) {
+				feed := NewRSSFeed(f, NewRamCache())
 				for item := range feed.Rx {
 					time.Sleep(time.Second * time.Duration(len(Conf.Channels)))
 					i.Tx <- &irc.Line{
 						Command:   "PRIVMSG",
-						Arguments: []string{channel},
+						Arguments: []string{c},
 						Suffix:    fmt.Sprintf("%s - %s", item.Title, item.Link),
 					}
 				}
-			}()
+			}(feed_str, channel)
 		}
 	}
 
