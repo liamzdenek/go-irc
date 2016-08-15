@@ -64,7 +64,7 @@ func main() {
 				i.Tx <- &irc.Line{
 					Command:   "USER",
 					Arguments: []string{name, "8", "*"},
-					Suffix:    "Liam Test",
+					Suffix:    Conf.Realname,
 				}
 			case *irc.Line:
 				switch l.Command {
