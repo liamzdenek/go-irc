@@ -9,9 +9,10 @@ import (
 var Conf *Config = &Config{}
 
 type Config struct {
-	Name    string
-	Server  string
-	Refetch time.Duration
+	Name     string
+	Realname string
+	Server   string
+	Refetch  time.Duration
 	// string = channel name
 	Channels map[string]*struct {
 		Feeds []string // http list

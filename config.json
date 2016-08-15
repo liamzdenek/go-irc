@@ -1,5 +1,6 @@
 {
 	"Name": "rss_test",
+	"Realname": "Liam Test",
 	"Server": "hypeirc:6667",
 	"Refetch": 5,
 	"Channels": {
