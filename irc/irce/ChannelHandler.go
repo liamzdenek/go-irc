@@ -48,10 +48,12 @@ func (ch *ChannelHandler) Join(c string) {
 
 	if ch.joinQueue == nil {
 		go func() {
-			ch.irc.Tx <- &irc.Line{
-				Command:   "JOIN",
-				Arguments: []string{c},
-			}
+            line, _ := irc.NewLineBuilder().
+                Command("JOIN").
+                ArgsFromString(c).
+                Consume();
+            ch.irc.Tx <- line;
+
 		}()
 	} else {
 		ch.pushJoinQueue(c)

@@ -23,10 +23,16 @@ func main() {
 				feed := NewRSSFeed(f, NewRamCache())
 				for item := range feed.Rx {
 					time.Sleep(time.Second * time.Duration(len(Conf.Channels)))
-					i.Tx <- &irc.Line{
-						Command:   "PRIVMSG",
-						Arguments: []string{c},
-						Suffix:    fmt.Sprintf("%s - %s", item.Title, item.Link),
+					line, err := irc.NewLineBuilder().
+						Command("PRIVMSG").
+						ArgsFromString(c).
+						Suffix(fmt.Sprintf("%s - %s", item.Title, item.Link)).
+						Sanitize().
+						Consume()
+					if err != nil {
+						fmt.Println("Error generating RSS announcement: %s", err)
+					} else {
+						i.Tx <- line
 					}
 				}
 			}(feed_str, channel)

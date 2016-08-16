@@ -129,9 +129,34 @@ func (lb *LineBuilder) Suffix(s string) *LineBuilder {
     return lb
 }
 
+func (lb *LineBuilder) Sanitize() *LineBuilder {
+    // prefix must be one word
+    lb.prefix = strings.Replace(lb.prefix, " ", "", -1);
+
+    //command must be one word
+    lb.command = strings.Replace(lb.command, " ", "", -1);
+
+    // no \r\n anywhere
+    lb.prefix = strings.Replace(lb.command, "\r", "", -1);
+    lb.prefix = strings.Replace(lb.command, "\n", "", -1);
+    lb.command = strings.Replace(lb.command, "\r", "", -1);
+    lb.command = strings.Replace(lb.command, "\n", "", -1);
+    for i, arg := range lb.arguments {
+        lb.arguments[i] = strings.Replace(arg, "\r", "", -1);
+        lb.arguments[i] = strings.Replace(arg, "\n", "", -1);
+    }
+    lb.suffix = strings.Replace(lb.suffix, "\r", "", -1);
+    lb.suffix = strings.Replace(lb.suffix, "\n", "", -1);
+
+    return lb
+}
+
 func (lb *LineBuilder) Consume() (*Line, error) {
     if strings.Contains(lb.prefix, " ") {
         return nil, &ENoSpaces{field: "prefix"};
+    }
+    if strings.ContainsAny(lb.prefix, "\r\n") {
+        return nil, &ENoNewlines{field: "prefix"}
     }
     for i, arg := range lb.arguments {
         if strings.Contains(arg, " ") {
@@ -143,6 +168,12 @@ func (lb *LineBuilder) Consume() (*Line, error) {
     }
     if len(lb.command) == 0 {
         return nil, &EMissingCommand{}
+    }
+    if strings.Contains(lb.command, " ") {
+        return nil, &ENoNewlines{field: "command"}
+    }
+    if strings.ContainsAny(lb.command, "\r\n") {
+        return nil, &ENoNewlines{field: "command"}
     }
     return &Line{
         Prefix: lb.prefix,
