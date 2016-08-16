@@ -3,6 +3,7 @@ package irc
 import (
 	"bufio"
 	"errors"
+    "fmt"
 	"io"
 	"log"
 	"net"
@@ -69,7 +70,89 @@ func (el *Line) Raw() (s string) {
 	return
 }
 
-func NewLine(line string) (*Line, error) {
+type LineBuilder struct {
+    prefix string
+    command string
+    arguments []string
+    suffix string
+}
+
+type ENoSpaces struct{field string};
+
+func (e *ENoSpaces) Error() string {
+    return fmt.Sprintf("MUST not contain any spaces", e.field);
+}
+
+type ENoNewlines struct{field string};
+
+func (e *ENoNewlines) Error() string {
+    return fmt.Sprintf("MUST not contain any \\n or \\r - %s", e.field);
+}
+
+type EMissingCommand struct{}
+
+func (e *EMissingCommand) Error() string {
+    return "A line MUST contain a non-empty .Command"
+}
+
+func NewLineBuilder() *LineBuilder {
+    return &LineBuilder{
+        prefix: "",
+        command: "",
+        arguments: []string{},
+        suffix: "",
+    }
+}
+
+func (lb *LineBuilder) Prefix(p string) *LineBuilder {
+    lb.prefix = p;
+    return lb
+}
+
+func (lb *LineBuilder) Command(c string) *LineBuilder {
+    lb.command = c
+    return lb
+}
+
+func (lb *LineBuilder) PushArg(a string) *LineBuilder {
+    lb.arguments = append(lb.arguments, a);
+    return lb
+}
+
+func (lb *LineBuilder) ArgsFromString(a string) *LineBuilder {
+    lb.arguments = strings.Split(a, " ");
+    return lb
+}
+
+func (lb *LineBuilder) Suffix(s string) *LineBuilder {
+    lb.suffix = s;
+    return lb
+}
+
+func (lb *LineBuilder) Consume() (*Line, error) {
+    if strings.Contains(lb.prefix, " ") {
+        return nil, &ENoSpaces{field: "prefix"};
+    }
+    for i, arg := range lb.arguments {
+        if strings.Contains(arg, " ") {
+            return nil, &ENoSpaces{field: fmt.Sprintf("arg[%d]", i)};
+        }
+        if strings.ContainsAny(arg, "\r\n") {
+            return nil, &ENoNewlines{field: fmt.Sprintf("arg[%d]", i)};
+        }
+    }
+    if len(lb.command) == 0 {
+        return nil, &EMissingCommand{}
+    }
+    return &Line{
+        Prefix: lb.prefix,
+        Command: lb.command,
+        Arguments: lb.arguments,
+        Suffix: lb.suffix,
+    }, nil;
+}
+
+func NewLineFromRaw(line string) (*Line, error) {
 	line = strings.Trim(line, TRIM)
 
 	result := &Line{
@@ -177,7 +260,7 @@ func (i *IRC) Run() {
 				log.Printf("Reading error: %s\n", err)
 				continue
 			}
-			iline, err := NewLine(line)
+			iline, err := NewLineFromRaw(line)
 			if err != nil {
 				log.Printf("Line parsing error: %s\n", err)
 				continue
