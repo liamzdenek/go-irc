@@ -48,10 +48,12 @@ func (ch *ChannelHandler) Join(c string) {
 
 	if ch.joinQueue == nil {
 		go func() {
-			ch.irc.Tx <- &irc.Line{
-				Command:   "JOIN",
-				Arguments: []string{c},
-			}
+			line, _ := irc.NewLineBuilder().
+				Command("JOIN").
+				ArgsFromString(c).
+				Consume()
+			ch.irc.Tx <- line
+
 		}()
 	} else {
 		ch.pushJoinQueue(c)
@@ -66,10 +68,10 @@ func (ch *ChannelHandler) pushJoinQueue(c string) {
 func (ch *ChannelHandler) popJoinQueue(c string) {
 	for i, v := range *ch.joinQueue {
 		if v == c {
-			k := *ch.joinQueue;
-			k = append(k[:i], k[i+1:]...);
-			ch.joinQueue = &k;
-			break;
+			k := *ch.joinQueue
+			k = append(k[:i], k[i+1:]...)
+			ch.joinQueue = &k
+			break
 		}
 	}
 }
