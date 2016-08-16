@@ -3,8 +3,8 @@ package main
 import (
 	"fmt"
 	"log"
-	"time"
 	"strings"
+	"time"
 
 	"github.com/liamzdenek/go-irc/irc"
 	"github.com/liamzdenek/go-irc/irc/irce"
@@ -74,17 +74,17 @@ func main() {
 			case *irc.Line:
 				switch l.Command {
 				case "JOIN":
-					c := l.Suffix;
+					c := l.Suffix
 					if Conf.Channels[c] != nil {
-						log.Printf("GOT A JOIN IN: %s\n", c);
-						p := strings.Split(l.Prefix, "@");
+						log.Printf("GOT A JOIN IN: %s\n", c)
+						p := strings.Split(l.Prefix, "@")
 						if len(p) > 1 {
-							ident := p[len(p)-1];
-							name_parts := strings.Split(p[0], "!");
-							name := name_parts[0];
+							ident := p[len(p)-1]
+							name_parts := strings.Split(p[0], "!")
+							name := name_parts[0]
 							for _, person := range Conf.Channels[c].Ops {
-								log.Printf("NAME: %s, IDENT: %s PERSON: %s\n", name, ident, person);
-								if(person == ident) {
+								log.Printf("NAME: %s, IDENT: %s PERSON: %s\n", name, ident, person)
+								if person == ident {
 									i.Tx <- &irc.Line{
 										Command:   "MODE",
 										Arguments: []string{c, "+o", name},

@@ -9,24 +9,24 @@ import (
 
 func main() {
 	i := irc.NewIRC("hypeirc:6667")
-	ch := irce.NewChannelHandler(i);
-	
-	log.Printf("Entering main loop\n");
+	ch := irce.NewChannelHandler(i)
+
+	log.Printf("Entering main loop\n")
 	for e := range i.Rx {
 		// prints nice messages to stdout... great for debugging/logging
-		// this line can be put after the PingHandler (given that you're 
+		// this line can be put after the PingHandler (given that you're
 		// continuing when it returns true) and it won't print Pings
-		irce.LogHandler(e);
+		irce.LogHandler(e)
 
 		// handles PING/PONG automatically. You generally want this
 		if i.PingHandler(e) {
 			// prevents other handlers from wasting their time
 			// when this ping has already been handled. we can just abort
 			// early
-			continue;
+			continue
 		}
 
-		ch.Handle(e);
+		ch.Handle(e)
 
 		// Extras TODO:
 		// * ChannelHandler, manages the channels and the users in them.
@@ -39,19 +39,19 @@ func main() {
 		switch l := e.(type) {
 		case *irc.EConnect:
 			i.Tx <- &irc.Line{
-				Command: "NICK",
+				Command:   "NICK",
 				Arguments: []string{"LiamTest"},
 			}
 			i.Tx <- &irc.Line{
-				Command: "USER",
+				Command:   "USER",
 				Arguments: []string{"LiamTest", "8", "*"},
-				Suffix: "Liam Test",
+				Suffix:    "Liam Test",
 			}
 		case *irc.Line:
 			switch l.Command {
 			case "001":
 				i.Tx <- &irc.Line{
-					Command: "JOIN",
+					Command:   "JOIN",
 					Arguments: []string{"#rust-nuts"},
 				}
 			}

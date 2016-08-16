@@ -3,7 +3,7 @@ package irc
 import (
 	"bufio"
 	"errors"
-    "fmt"
+	"fmt"
 	"io"
 	"log"
 	"net"
@@ -45,9 +45,9 @@ type Line struct {
 }
 
 func (el *Line) Send(conn net.Conn) error {
-	line := el.Raw();
-	log.Printf("Sending Line: %s", line);
-	conn.Write([]byte(line));
+	line := el.Raw()
+	log.Printf("Sending Line: %s", line)
+	conn.Write([]byte(line))
 	return nil
 }
 
@@ -55,132 +55,132 @@ func (el *Line) Raw() (s string) {
 	if len(el.Prefix) > 0 {
 		s = ":" + el.Prefix + " "
 	}
-	
-	s = s + el.Command + " ";
-	
+
+	s = s + el.Command + " "
+
 	if len(el.Arguments) > 0 {
-		s = s + strings.Join(el.Arguments, " ") + " ";
-	}
-	
-	if len(el.Suffix) > 0 {
-		s = s + ":" + el.Suffix;
+		s = s + strings.Join(el.Arguments, " ") + " "
 	}
 
-	s = s + "\r\n";
+	if len(el.Suffix) > 0 {
+		s = s + ":" + el.Suffix
+	}
+
+	s = s + "\r\n"
 	return
 }
 
 type LineBuilder struct {
-    prefix string
-    command string
-    arguments []string
-    suffix string
+	prefix    string
+	command   string
+	arguments []string
+	suffix    string
 }
 
-type ENoSpaces struct{field string};
+type ENoSpaces struct{ field string }
 
 func (e *ENoSpaces) Error() string {
-    return fmt.Sprintf("MUST not contain any spaces", e.field);
+	return fmt.Sprintf("MUST not contain any spaces", e.field)
 }
 
-type ENoNewlines struct{field string};
+type ENoNewlines struct{ field string }
 
 func (e *ENoNewlines) Error() string {
-    return fmt.Sprintf("MUST not contain any \\n or \\r - %s", e.field);
+	return fmt.Sprintf("MUST not contain any \\n or \\r - %s", e.field)
 }
 
 type EMissingCommand struct{}
 
 func (e *EMissingCommand) Error() string {
-    return "A line MUST contain a non-empty .Command"
+	return "A line MUST contain a non-empty .Command"
 }
 
 func NewLineBuilder() *LineBuilder {
-    return &LineBuilder{
-        prefix: "",
-        command: "",
-        arguments: []string{},
-        suffix: "",
-    }
+	return &LineBuilder{
+		prefix:    "",
+		command:   "",
+		arguments: []string{},
+		suffix:    "",
+	}
 }
 
 func (lb *LineBuilder) Prefix(p string) *LineBuilder {
-    lb.prefix = p;
-    return lb
+	lb.prefix = p
+	return lb
 }
 
 func (lb *LineBuilder) Command(c string) *LineBuilder {
-    lb.command = c
-    return lb
+	lb.command = c
+	return lb
 }
 
 func (lb *LineBuilder) PushArg(a string) *LineBuilder {
-    lb.arguments = append(lb.arguments, a);
-    return lb
+	lb.arguments = append(lb.arguments, a)
+	return lb
 }
 
 func (lb *LineBuilder) ArgsFromString(a string) *LineBuilder {
-    lb.arguments = strings.Split(a, " ");
-    return lb
+	lb.arguments = strings.Split(a, " ")
+	return lb
 }
 
 func (lb *LineBuilder) Suffix(s string) *LineBuilder {
-    lb.suffix = s;
-    return lb
+	lb.suffix = s
+	return lb
 }
 
 func (lb *LineBuilder) Sanitize() *LineBuilder {
-    // prefix must be one word
-    lb.prefix = strings.Replace(lb.prefix, " ", "", -1);
+	// prefix must be one word
+	lb.prefix = strings.Replace(lb.prefix, " ", "", -1)
 
-    //command must be one word
-    lb.command = strings.Replace(lb.command, " ", "", -1);
+	//command must be one word
+	lb.command = strings.Replace(lb.command, " ", "", -1)
 
-    // no \r\n anywhere
-    lb.prefix = strings.Replace(lb.command, "\r", "", -1);
-    lb.prefix = strings.Replace(lb.command, "\n", "", -1);
-    lb.command = strings.Replace(lb.command, "\r", "", -1);
-    lb.command = strings.Replace(lb.command, "\n", "", -1);
-    for i, arg := range lb.arguments {
-        lb.arguments[i] = strings.Replace(arg, "\r", "", -1);
-        lb.arguments[i] = strings.Replace(arg, "\n", "", -1);
-    }
-    lb.suffix = strings.Replace(lb.suffix, "\r", "", -1);
-    lb.suffix = strings.Replace(lb.suffix, "\n", "", -1);
+	// no \r\n anywhere
+	lb.prefix = strings.Replace(lb.command, "\r", "", -1)
+	lb.prefix = strings.Replace(lb.command, "\n", "", -1)
+	lb.command = strings.Replace(lb.command, "\r", "", -1)
+	lb.command = strings.Replace(lb.command, "\n", "", -1)
+	for i, arg := range lb.arguments {
+		lb.arguments[i] = strings.Replace(arg, "\r", "", -1)
+		lb.arguments[i] = strings.Replace(arg, "\n", "", -1)
+	}
+	lb.suffix = strings.Replace(lb.suffix, "\r", "", -1)
+	lb.suffix = strings.Replace(lb.suffix, "\n", "", -1)
 
-    return lb
+	return lb
 }
 
 func (lb *LineBuilder) Consume() (*Line, error) {
-    if strings.Contains(lb.prefix, " ") {
-        return nil, &ENoSpaces{field: "prefix"};
-    }
-    if strings.ContainsAny(lb.prefix, "\r\n") {
-        return nil, &ENoNewlines{field: "prefix"}
-    }
-    for i, arg := range lb.arguments {
-        if strings.Contains(arg, " ") {
-            return nil, &ENoSpaces{field: fmt.Sprintf("arg[%d]", i)};
-        }
-        if strings.ContainsAny(arg, "\r\n") {
-            return nil, &ENoNewlines{field: fmt.Sprintf("arg[%d]", i)};
-        }
-    }
-    if len(lb.command) == 0 {
-        return nil, &EMissingCommand{}
-    }
-    if strings.Contains(lb.command, " ") {
-        return nil, &ENoNewlines{field: "command"}
-    }
-    if strings.ContainsAny(lb.command, "\r\n") {
-        return nil, &ENoNewlines{field: "command"}
-    }
-    return &Line{
-        Prefix: lb.prefix,
-        Command: lb.command,
-        Arguments: lb.arguments,
-        Suffix: lb.suffix,
-    }, nil;
+	if strings.Contains(lb.prefix, " ") {
+		return nil, &ENoSpaces{field: "prefix"}
+	}
+	if strings.ContainsAny(lb.prefix, "\r\n") {
+		return nil, &ENoNewlines{field: "prefix"}
+	}
+	for i, arg := range lb.arguments {
+		if strings.Contains(arg, " ") {
+			return nil, &ENoSpaces{field: fmt.Sprintf("arg[%d]", i)}
+		}
+		if strings.ContainsAny(arg, "\r\n") {
+			return nil, &ENoNewlines{field: fmt.Sprintf("arg[%d]", i)}
+		}
+	}
+	if len(lb.command) == 0 {
+		return nil, &EMissingCommand{}
+	}
+	if strings.Contains(lb.command, " ") {
+		return nil, &ENoNewlines{field: "command"}
+	}
+	if strings.ContainsAny(lb.command, "\r\n") {
+		return nil, &ENoNewlines{field: "command"}
+	}
+	return &Line{
+		Prefix:    lb.prefix,
+		Command:   lb.command,
+		Arguments: lb.arguments,
+		Suffix:    lb.suffix,
+	}, nil
 }
 
 func NewLineFromRaw(line string) (*Line, error) {
@@ -251,7 +251,7 @@ func (i *IRC) PingHandler(e Event) bool {
 		switch l.Command {
 		case "PING":
 			i.Tx <- &Line{
-				Command: "PONG",
+				Command:   "PONG",
 				Arguments: l.Arguments,
 			}
 		}
@@ -264,14 +264,14 @@ func (i *IRC) Run() {
 	var sock net.Conn = nil
 	for {
 		if sock == nil {
-			log.Printf("Dialing...");
+			log.Printf("Dialing...")
 			c, err := i.connect()
 			if err != nil {
 				log.Printf("Could not connect. Retrying in 10s: %s\n", err)
 				time.Sleep(10 * time.Second)
 				continue
 			}
-			log.Printf("Dialed");
+			log.Printf("Dialed")
 			sock = c
 			i.Tx = make(chan Event)
 			i.Rx <- &EConnect{}

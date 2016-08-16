@@ -7,7 +7,7 @@ import (
 )
 
 func LogHandler(e irc.Event) {
-	log.Printf("GOT EVENT: %s\n", e);
+	log.Printf("GOT EVENT: %s\n", e)
 	switch l := e.(type) {
 	case *irc.EConnect:
 		log.Printf("Connected\n")
